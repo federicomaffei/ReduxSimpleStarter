@@ -4,7 +4,7 @@ const VideoListItem = props => {
   console.log(props);
 
   return (
-    <li key={props.video.id.videoId}>
+    <li>
       {props.video.snippet.title}
     </li>
   )

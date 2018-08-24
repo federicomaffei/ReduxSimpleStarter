@@ -1,30 +1,70 @@
+const webpack = require('webpack');
+const path = require('path');
+
 module.exports = {
   entry: ['./src/index.js'],
-  output: {
-    path: __dirname,
-    publicPath: '/',
-    filename: 'bundle.js'
-  },
   module: {
-    loaders: [
+    rules: [
       {
+        test: /\.js?$/,
         exclude: /node_modules/,
-        loader: 'babel',
-        query: {
-          presets: ['react', 'es2015', 'stage-1']
-        }
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['babel-preset-react'].map(require.resolve),
+              plugins: [
+                ['babel-plugin-transform-object-rest-spread', 'babel-plugin-transform-runtime', 'babel-plugin-transform-object-assign'].map(require.resolve),
+              ],
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        exclude: /node_modules/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            query: {
+              modules: true,
+              sourceMap: false,
+              importLoaders: 1,
+              localIdentName: '[name]__[local]__[hash:base64:5]',
+            },
+          },
+          'postcss-loader',
+          {
+            loader: 'clean-css-loader',
+            options: {
+              level: 1,
+              inline: ['remote']
+            }
+          }
+        ]
       }
-    ]
+    ],
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['.js'],
+    modules: [
+      path.resolve('./node_modules/'),
+    ]
   },
-  devServer: {
-    historyApiFallback: true,
-    contentBase: './',
-    watchOptions: {
-      aggregateTimeout: 300,
-      poll: 1000
-    }
-  }
+  output: {
+    path: path.join(__dirname, '/public/webpack/'),
+    filename: 'bundle.js',
+  },
+  devtool: 'cheap-module-source-map',
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': Object.keys(process.env).reduce(function (o, k) {
+        o[k] = JSON.stringify(process.env[k]);
+        return o;
+      }, {})
+    })
+  ],
 };
